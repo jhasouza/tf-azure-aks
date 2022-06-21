@@ -1,22 +1,22 @@
 #AZURE AKS
 
 #Resource Group
-resource "azurerm_resource_group" "iac_aks" {
-  name     = "iac_aks"
-  location = "eastus"
+resource "azurerm_resource_group" "resource_group" {
+  name     = "${var.resource_group_name_prefix}-${var.resource_group_name}"
+  location = var.resource_group_location
 }
 
 #AKS
-resource "azurerm_kubernetes_cluster" "ttech_aks" {
-  name                = "ttech_aks_poc"
-  location            = azurerm_resource_group.ttech_iac.location
-  resource_group_name = azurerm_resource_group.ttech_iac.name
-  dns_prefix          = "ttechakspoc" #Opcional
+resource "azurerm_kubernetes_cluster" "cluster" {
+  name                = var.cluster_name
+  location            = azurerm_resource_group.resource_group.location
+  resource_group_name = azurerm_resource_group.resource_group.name
+  dns_prefix          = var.dns_prefix
 
   default_node_pool {
-    name       = "agentpool"
-    node_count = 3
-    vm_size    = "Standard_D2ds_v5"
+    name       = var.node_pool_name
+    node_count = var.pool_node_count
+    vm_size    = var.vm_size
   }
 
   identity {
@@ -31,13 +31,8 @@ resource "azurerm_kubernetes_cluster" "ttech_aks" {
   }
 }
 
-#Output
-#output "kube_config" {
-#  value = azurerm_kubernetes_cluster.ttech_aks.kube_config_raw
-#}
-
 #Local File > Saída do kubeconfig
 resource "local_file" "kube_config" {
-  content  = azurerm_kubernetes_cluster.ttech_aks.kube_config_raw
+  content  = azurerm_kubernetes_cluster.cluster.kube_config_raw
   filename = "kubeconfig"
 }
